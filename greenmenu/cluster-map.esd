@@ -90,13 +90,26 @@ script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_right_down.sh"
     label   "Inset right -5"
 
+keyValue
+    value   String sys 0x00000000 0
+    label   "--- Presets: each press saves, reboot to apply ---"
+    poll    0
+
 script
-    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_default.sh"
-    label   "Preset: DPI 125, insets 40,40,127,127 (shipped)"
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_vw_original.sh"
+    label   "VW original: DPI 125, insets 40,40,127,127"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_vw_golf.sh"
+    label   "VW Golf: DPI 125, insets 53,47,127,127"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_vw_custom.sh"
+    label   "VW custom: DPI 140, insets 105,127,127,127"
 
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_seat.sh"
-    label   "Preset: DPI 140, insets 105,127,127,127 (SEAT)"
+    label   "SEAT: DPI 140, insets 105,127,127,127"
 
 keyValue
     value   String sys 0x00000000 0
