@@ -41,6 +41,63 @@ script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/savelogs.sh"
     label   "Save logs to SD"
 
+keyValue
+    value   String sys 0x00000000 0
+    label   "Map settings. Each press saves; reboot to apply."
+    poll    0
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/settings_show.sh"
+    label   "Show DPI and insets"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_dpi_up.sh"
+    label   "DPI +5 (map larger)"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_dpi_down.sh"
+    label   "DPI -5 (map smaller)"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_top_up.sh"
+    label   "Inset top +5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_top_down.sh"
+    label   "Inset top -5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_bottom_up.sh"
+    label   "Inset bottom +5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_bottom_down.sh"
+    label   "Inset bottom -5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_left_up.sh"
+    label   "Inset left +5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_left_down.sh"
+    label   "Inset left -5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_right_up.sh"
+    label   "Inset right +5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_right_down.sh"
+    label   "Inset right -5"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_default.sh"
+    label   "Preset: DPI 125, insets 40,40,127,127 (shipped)"
+
+script
+    value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_seat.sh"
+    label   "Preset: DPI 140, insets 105,127,127,127 (SEAT)"
+
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/collect_for_porting.sh"
     label   "Collect files for porting (quick)"

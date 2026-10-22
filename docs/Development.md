@@ -171,6 +171,33 @@ cd ../mib-cluster-map
 
 FFmpeg 6.1.5 is downloaded, checked and built on first use.
 
+## Releasing
+
+Releases are built by the `release` workflow (`.github/workflows/release.yml`)
+with the same `build_local.sh`, so a release zip never depends on what is on
+one person's disk.
+
+1. Commit and push the changes to `main`.
+2. Write `release-notes/<version>.md`. Its first line, `# <title>`, becomes
+   the release title; the rest is the release text. Commit and push it.
+3. Run `tools/release.sh v1.2.0` (or `v1.2.0-beta1` for a pre-release: any
+   version with a `-`). It checks that the tree is clean and pushed, asks
+   once, then tags `HEAD` and pushes the tag.
+4. The workflow builds the package and publishes the release with
+   `mib-cluster-map_<version>.zip` and its `.sha256`. Follow it with
+   `gh run watch`.
+
+The workflow needs the QNX toolchain image, which is not published anywhere.
+The first run builds it from `luka-dev/qnx65-armv7-toolchain` at the commit
+pinned in the workflow (about 30 minutes) and stores it in this repository's
+container registry (`ghcr.io/<owner>/qnx65-armv7-toolchain`); later runs pull
+it. Change `TOOLCHAIN_REF` to move to a newer toolchain.
+
+**Run workflow** on the Actions page builds a test zip without a release;
+the zip is attached to the run. `tools/release.sh v1.2.0 --local` builds here
+with Docker and publishes with `gh`, as releases were made before the
+workflow existed.
+
 ## Testing on a car
 
 Change one thing per run, and record the firmware, the package build

@@ -1,0 +1,113 @@
+# Builds the SD card package with build_local.sh and publishes it.
+#
+#   push a tag v*           build, then a GitHub release with the zip and its
+#                           .sha256. A tag with a '-' (v1.2.0-beta1) is a
+#                           pre-release. Notes come from release-notes/<tag>.md,
+#                           else GitHub writes them from the commits.
+#   Run workflow (manual)   build only; the zip is attached to the run.
+#
+# tools/release.sh creates and pushes the tag.
+#
+# The QNX toolchain image is not published anywhere, so it is built once from
+# luka-dev/qnx65-armv7-toolchain (about 30 minutes) and kept in this
+# repository's container registry; later runs pull it.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version label for the zip (empty: git describe)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  TOOLCHAIN_REPO: https://github.com/luka-dev/qnx65-armv7-toolchain.git
+  TOOLCHAIN_REF: baa45224f18ae6b13c2e9c77c6663bb8181eb6a1
+  LOCAL_IMAGE: qnx65-armv7-toolchain:8.5
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Toolchain image
+        run: |
+          set -eu
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          remote=ghcr.io/$owner/qnx65-armv7-toolchain:8.5-${TOOLCHAIN_REF:0:12}
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          if docker pull "$remote"; then
+            docker tag "$remote" "$LOCAL_IMAGE"
+          else
+            git clone "$TOOLCHAIN_REPO" "$RUNNER_TEMP/toolchain"
+            git -C "$RUNNER_TEMP/toolchain" checkout "$TOOLCHAIN_REF"
+            docker build --platform=linux/amd64 --target base-env --build-arg BASE=base-8.5 \
+              -t "$LOCAL_IMAGE" "$RUNNER_TEMP/toolchain"
+            docker tag "$LOCAL_IMAGE" "$remote"
+            docker push "$remote" || echo "::warning::could not cache the toolchain image in ghcr.io"
+          fi
+
+      - name: Version
+        id: ver
+        run: |
+          set -eu
+          if [ "${{ github.ref_type }}" = tag ]; then
+            v="${{ github.ref_name }}"
+          else
+            v="${{ inputs.version }}"
+            [ -n "$v" ] || v=$(git describe --tags --always --dirty)
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+        run: ./build_local.sh all
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mib-cluster-map_${{ steps.ver.outputs.version }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+
+      - name: Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          # tools/release.sh --local publishes the release itself.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; nothing to publish."
+            exit 0
+          fi
+          args=""
+          title="$TAG"
+          case "$TAG" in *-*) args="$args --prerelease" ;; esac
+          notes="release-notes/$TAG.md"
+          if [ -f "$notes" ]; then
+            # A first line "# ..." is the release title, the rest the notes.
+            first=$(head -n 1 "$notes")
+            case "$first" in
+              '# '*) title="${first#\# }"; tail -n +2 "$notes" > "$RUNNER_TEMP/notes.md" ;;
+              *) cp "$notes" "$RUNNER_TEMP/notes.md" ;;
+            esac
+            args="$args --notes-file $RUNNER_TEMP/notes.md"
+          else
+            args="$args --generate-notes"
+          fi
+          gh release create "$TAG" dist/mib-cluster-map_"$TAG".zip dist/mib-cluster-map_"$TAG".zip.sha256 \
+            --title "$title" --verify-tag $args

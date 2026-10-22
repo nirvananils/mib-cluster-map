@@ -98,6 +98,11 @@ Open it with MENU (hold) > `Testmode` > `Green Developer Menu` >
 | Uninstall and restore original state | Full revert |
 | Switch to turn-by-turn arrows instead (no map) | Removes the map, installs the arrows. Install switches back |
 | Save logs to SD | For a problem report. Before rebooting: logs are in RAM |
+| Show DPI and insets | The current map settings |
+| DPI +5 / DPI -5 | Map text and turn card larger / smaller |
+| Inset top, bottom, left, right +5 / -5 | Moves the map's buttons and text away from the dials (+) or towards them (-) |
+| Preset: DPI 125, insets 40,40,127,127 (shipped) | Back to the shipped values |
+| Preset: DPI 140, insets 105,127,127,127 (SEAT) | The values SEAT owners settled on |
 | Collect files for porting (quick) | About 2.5 MB, read only |
 | Collect for porting, with Java image (55 MB, slow) | Only for a turn-arrows port |
 
@@ -159,6 +164,13 @@ output and the unit's copy of the settings (`GAL_PLAYER_WINDOW`,
 
 Edit `ClusterMap/gal_dualscreen.conf` on the card, run the install again so
 the unit's copy is refreshed, and reboot. The file documents every key.
+
+DPI and insets can also be changed from the green menu (`ClusterMap` screen,
+below **Map settings**), without editing the file. Each press saves the new
+value to the unit's copy of the settings and to the card's
+`ClusterMap/gal_dualscreen.conf`, so a later install keeps it, and moves the
+CarPlay safe area with the insets. Reboot to apply. DPI is kept between 60
+and 320, each inset between 0 and 127; other values still go in the file.
 
 | Setting | Shipped | Change it when |
 |---|---|---|
