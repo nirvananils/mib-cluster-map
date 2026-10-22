@@ -26,10 +26,10 @@ DPI_MIN=60
 DPI_MAX=320
 INSET_MAX=127
 
-# The last value of KEY in FILE, as the installer reads it.
+# The value of KEY in FILE. The hook keeps the first line for a key.
 conf_get()
 {
-    sed -n "s/^$1=\([^ 	]*\)[ 	]*$/\1/p" "$2" 2>/dev/null | tail -1
+    sed -n "s/^$1=\([^ 	]*\)[ 	]*$/\1/p" "$2" 2>/dev/null | head -1
 }
 
 # Sets KEY=VALUE in FILE through a new file and a rename: every existing line
@@ -63,12 +63,40 @@ case "$INSETS" in
 esac
 OLD_IFS=$IFS; IFS=,; set -- $INSETS; IFS=$OLD_IFS
 TOP=$1; BOTTOM=$2; LEFT=$3; RIGHT=$4
+OLD_DPI=$DPI; OLD_INSETS=$TOP,$BOTTOM,$LEFT,$RIGHT
+
+# The hook's log of this boot, wherever it landed.
+HOOK_LOG=
+for f in /tmp/gal_dualscreen.log /fs/sda0/logs/gal_dualscreen.log /fs/sdb0/logs/gal_dualscreen.log; do
+    if [ -r "$f" ]; then HOOK_LOG=$f; break; fi
+done
 
 show()
 {
-    echo "DPI: $DPI (lower draws the map smaller)"
-    echo "Insets top,bottom,left,right: $TOP,$BOTTOM,$LEFT,$RIGHT (each 0 to $INSET_MAX)"
-    echo "Read from: ${SOURCE:-built-in defaults}"
+    echo "Settings file in use: ${SOURCE:-none, built-in defaults}"
+    echo "  DPI: $DPI (lower draws the map smaller)"
+    echo "  Insets top,bottom,left,right: $TOP,$BOTTOM,$LEFT,$RIGHT (each 0 to $INSET_MAX)"
+    # The start-up environment wins over the file.
+    e=`sed -n 's/.*"GAL_SECONDARY_DPI=\([0-9]*\)".*/\1/p' "$CONFIG" 2>/dev/null | head -1`
+    [ -n "$e" ] && echo "  DPI $e is set by the installed start-up and wins over the file"
+    # Other copies, when they hold different values.
+    for f in "$UNIT_CONF" "$CARD_CONF"; do
+        [ -r "$f" ] && [ "$f" != "$SOURCE" ] || continue
+        d=`conf_get GAL_SECONDARY_DPI "$f"`; i=`conf_get GAL_SECONDARY_INSETS "$f"`
+        [ "$d,$i" = "$DPI,$INSETS" ] || echo "Other copy $f: DPI ${d:-unset}, insets ${i:-unset}"
+    done
+    # What the hook loaded at boot and sent to the phone, from its log.
+    if [ -n "$HOOK_LOG" ]; then
+        p=`sed -n 's/.*event=config.file result=loaded path=\([^ ]*\).*/\1/p' "$HOOK_LOG" | tail -1`
+        d=`sed -n 's/.*event=secondary.video_config result=success.* dpi=\([0-9]*\).*/\1/p' "$HOOK_LOG" | tail -1`
+        i=`sed -n 's/.*event=video.insets result=success.* top=\([0-9]*\) bottom=\([0-9]*\) left=\([0-9]*\) right=\([0-9]*\).*/\1,\2,\3,\4/p' "$HOOK_LOG" | tail -1`
+        echo "Running since boot (hook log):"
+        echo "  file loaded: ${p:-not logged}"
+        echo "  DPI: ${d:-not sent yet (connect the phone)}"
+        echo "  insets: ${i:-not sent yet (connect the phone)}"
+    else
+        echo "Running since boot: no hook log (map not installed, or no reboot yet)"
+    fi
 }
 
 # A new value from the current one and +N, -N or N, clamped to MIN..MAX.
@@ -171,6 +199,7 @@ grep -q '^GAL_SECONDARY_UI_CONFIG_HEX=' "$UNIT_CONF" "$CARD_CONF" 2>/dev/null &&
     echo "NOTE: GAL_SECONDARY_UI_CONFIG_HEX is set and replaces the insets. Comment it out in gal_dualscreen.conf."
 
 echo
+echo "Changed: DPI $OLD_DPI -> $DPI, insets $OLD_INSETS -> $INSETS"
 show
 echo
 if [ $RC -eq 0 ]; then

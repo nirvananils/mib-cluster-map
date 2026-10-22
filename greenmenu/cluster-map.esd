@@ -48,7 +48,7 @@ keyValue
 
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/settings_show.sh"
-    label   "Show DPI and insets"
+    label   "Show current DPI and insets (file and running)"
 
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_dpi_up.sh"
