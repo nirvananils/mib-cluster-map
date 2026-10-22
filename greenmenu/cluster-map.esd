@@ -43,7 +43,7 @@ script
 
 keyValue
     value   String sys 0x00000000 0
-    label   "Map settings. Each press saves; reboot to apply."
+    label   "--- Map settings: each press saves, reboot to apply ---"
     poll    0
 
 script
@@ -97,6 +97,11 @@ script
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/set_preset_seat.sh"
     label   "Preset: DPI 140, insets 105,127,127,127 (SEAT)"
+
+keyValue
+    value   String sys 0x00000000 0
+    label   "--- Porting: collect files for a new firmware (read only) ---"
+    poll    0
 
 script
     value   sys 1 0x0100 "/fs/sda0/ClusterMap/GEM/collect_for_porting.sh"

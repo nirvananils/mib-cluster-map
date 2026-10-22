@@ -98,11 +98,13 @@ Open it with MENU (hold) > `Testmode` > `Green Developer Menu` >
 | Uninstall and restore original state | Full revert |
 | Switch to turn-by-turn arrows instead (no map) | Removes the map, installs the arrows. Install switches back |
 | Save logs to SD | For a problem report. Before rebooting: logs are in RAM |
+| **Map settings** | Each press saves; reboot to apply |
 | Show current DPI and insets (file and running) | The values in the settings file the hook reads, other copies that differ, and from the hook log what was loaded at boot and sent to the phone |
 | DPI +5 / DPI -5 | Map text and turn card larger / smaller |
 | Inset top, bottom, left, right +5 / -5 | Moves the map's buttons and text away from the dials (+) or towards them (-) |
 | Preset: DPI 125, insets 40,40,127,127 (shipped) | Back to the shipped values |
 | Preset: DPI 140, insets 105,127,127,127 (SEAT) | The values SEAT owners settled on |
+| **Porting** | Read only: collect files to add a new firmware |
 | Collect files for porting (quick) | About 2.5 MB, read only |
 | Collect for porting, with Java image (55 MB, slow) | Only for a turn-arrows port |
 
